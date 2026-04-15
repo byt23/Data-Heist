@@ -12,7 +12,7 @@
 ## 🎥 Oynanış (Gameplay)
 
 <p align="center">
-  <video src="https://github.com/user-attachments/assets/9bafc506-1b3f-4cd2-9d6d-fac5b14f95e4" width="250" controls></video>
+  <video src="https://github.com/user-attachments/assets/d01da911-af59-49ff-8d60-cc053879b2b5" width="250" controls></video>
 </p>
 
 ### 📸 Ekran Görüntüleri
