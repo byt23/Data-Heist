@@ -1,5 +1,5 @@
 
-```markdown
+
 # 💻 DATA-HEIST: Terminal Hacker (iOS Mobil Oyunu)
 
 ![Platform](https://img.shields.io/badge/Platform-iOS-blue)
