@@ -10,11 +10,23 @@ import SwiftData
 
 @main
 struct DataHeistApp: App {
+    @State private var router = Router()
+    
     var body: some Scene {
         WindowGroup {
-            MainMenuView()
+            Group {
+                switch router.currentScreen {
+                case .menu:
+                    MainMenuView()
+                case .map:
+                    LevelSelectView()
+                case .game(let level):
+                    GameView(startingLevel: level)
+                }
+            }
+            .environment(router) // Router'ı tüm sayfalara dağıt
+            .animation(.easeInOut(duration: 0.2), value: router.currentScreen) // Yumuşak geçiş
         }
-        // KRİTİK: Tüm uygulamanın PlayerStats veritabanına erişmesini sağlar
         .modelContainer(for: PlayerStats.self)
     }
 }

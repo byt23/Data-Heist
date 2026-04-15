@@ -12,8 +12,10 @@ import SwiftData
 
 struct GameView: View {
     @State private var viewModel = GameViewModel()
-    @Environment(\.dismiss) var dismiss
-    @Environment(\.modelContext) private var modelContext // Veritabanı bağlamını alıyoruz
+    @Environment(\.modelContext) private var modelContext
+    
+    // ROUTER BAĞLANTISI
+    @Environment(Router.self) private var router
     
     var startingLevel: Int = 1
     
@@ -22,7 +24,7 @@ struct GameView: View {
             Color.black.ignoresSafeArea()
             
             VStack(spacing: 15) {
-                // 1. IP TESPİT BARI
+                // IP TESPİT BARI
                 VStack(spacing: 2) {
                     HStack {
                         Text("IP TESPİT RİSKİ").font(.system(size: 10, weight: .bold, design: .monospaced)).foregroundColor(viewModel.ipDetection > 75 ? .red : .gray)
@@ -38,7 +40,7 @@ struct GameView: View {
                     }.frame(height: 8)
                 }.padding(.horizontal).padding(.top, 5)
                 
-                // 2. ÜST BİLGİ PANELİ
+                // ÜST BİLGİ PANELİ
                 HStack {
                     VStack(alignment: .leading, spacing: 5) {
                         Text("SEVİYE: \(viewModel.currentLevel)").font(.system(size: 14, weight: .bold, design: .monospaced)).foregroundColor(.gray)
@@ -54,10 +56,10 @@ struct GameView: View {
                     }
                 }.padding(.horizontal)
                 
-                // 3. TERMİNAL MESAJI
+                // TERMİNAL MESAJI
                 Text(viewModel.terminalMessage).font(.system(size: 14, weight: .bold, design: .monospaced)).foregroundColor(viewModel.isTimeFrozen ? .cyan : (viewModel.terminalMessage.contains("HATA") || viewModel.terminalMessage.contains("POLİS") || viewModel.isGameOver ? .red : .green)).frame(maxWidth: .infinity, alignment: .leading).padding().background(Color.gray.opacity(0.1)).cornerRadius(8).padding(.horizontal)
                 
-                // 4. GRAFİK ALANI
+                // GRAFİK ALANI
                 if !viewModel.dataPoints.isEmpty {
                     Chart(viewModel.dataPoints) { point in
                         LineMark(x: .value("Zaman", point.timestamp), y: .value("Veri Yükü", point.value)).foregroundStyle(Color.green.opacity(0.8)).lineStyle(StrokeStyle(lineWidth: 2))
@@ -76,7 +78,7 @@ struct GameView: View {
                 }
                 Spacer()
                 
-                // 5. JOKER TUŞU
+                // JOKER TUŞU
                 Button(action: { withAnimation { viewModel.usePowerUp() } }) {
                     HStack { Image(systemName: "snowflake"); Text("ZAMANI DONDUR (\(viewModel.powerUpsRemaining))") }
                     .font(.system(size: 16, weight: .bold, design: .monospaced)).padding().frame(maxWidth: .infinity).background(viewModel.powerUpsRemaining > 0 && !viewModel.isTimeFrozen ? Color.cyan.opacity(0.2) : Color.gray.opacity(0.1)).foregroundColor(viewModel.powerUpsRemaining > 0 && !viewModel.isTimeFrozen ? .cyan : .gray).cornerRadius(8).overlay(RoundedRectangle(cornerRadius: 8).stroke(viewModel.powerUpsRemaining > 0 && !viewModel.isTimeFrozen ? Color.cyan : Color.gray, lineWidth: 1))
@@ -84,50 +86,28 @@ struct GameView: View {
             }
             .blur(radius: viewModel.isGameOver || viewModel.isVictory ? 5 : 0)
             
-            // 6. KONTROL PANELİ
+            // KONTROL PANELİ
             if viewModel.isGameOver || viewModel.isVictory {
                 VStack(spacing: 20) {
                     Text(viewModel.isVictory ? "BÖLÜM TEMİZLENDİ" : "SİSTEM ÇÖKTÜ").font(.system(size: 28, weight: .heavy, design: .monospaced)).foregroundColor(viewModel.isVictory ? .green : .red)
                     Text("Kazanılan Siber Coin: ₿\(viewModel.cyberCoinsEarned)").font(.system(size: 16, design: .monospaced)).foregroundColor(.yellow)
                     
                     HStack(spacing: 10) {
-                        // 1. MENÜ BUTONU: Zincirleme kapatma ile en başa döner.
+                        // ANA MENÜYE DÖN
                         Button(action: {
-                            dismiss() // Önce mevcut oyun ekranını (modalı) kapat
-                            
-                            // Ekran kapanma animasyonuna zaman tanıyıp, alttaki haritaya "Sen de kapan" diyoruz.
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                NotificationCenter.default.post(name: NSNotification.Name("GoToRoot"), object: nil)
-                            }
+                            router.currentScreen = .menu
                         }) {
-                            Text("MENÜ")
-                                .font(.system(size: 12, weight: .bold, design: .monospaced))
-                                .padding(.vertical, 12)
-                                .frame(maxWidth: .infinity)
-                                .background(Color.gray.opacity(0.3))
-                                .foregroundColor(.white)
-                                .cornerRadius(8)
+                            Text("MENÜ").font(.system(size: 12, weight: .bold, design: .monospaced)).padding(.vertical, 12).frame(maxWidth: .infinity).background(Color.gray.opacity(0.3)).foregroundColor(.white).cornerRadius(8)
                         }
                         
-                        // GameView.swift içindeki HARİTA butonu
+                        // HARİTAYA DÖN
                         Button(action: {
-                            // 1. Önce grafikleri ve zamanlayıcıyı durdur (Grafik motorunu rahatlat)
-                            viewModel.startHackTrace(level: viewModel.currentLevel, resetGame: false)
-                            
-                            // 2. Çok kısa bir gecikmeyle ekranı kapat (CA Event hatasını önler)
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                dismiss()
-                            }
+                            router.currentScreen = .map
                         }) {
-                            Text("HARİTA")
-                                .font(.system(size: 12, weight: .bold, design: .monospaced))
-                                .padding(.vertical, 12)
-                                .frame(maxWidth: .infinity)
-                                .background(Color.blue.opacity(0.3))
-                                .foregroundColor(.blue)
-                                .cornerRadius(8)
+                            Text("HARİTA").font(.system(size: 12, weight: .bold, design: .monospaced)).padding(.vertical, 12).frame(maxWidth: .infinity).background(Color.blue.opacity(0.3)).foregroundColor(.blue).cornerRadius(8)
                         }
                         
+                        // SONRAKİ / TEKRAR
                         Button(action: {
                             withAnimation {
                                 if viewModel.isVictory && viewModel.currentLevel < 20 {
@@ -144,7 +124,6 @@ struct GameView: View {
             }
         }
         .onAppear {
-            // KRİTİK: ViewModel'e veritabanı bağlamını veriyoruz
             viewModel.modelContext = modelContext
             viewModel.startHackTrace(level: startingLevel)
         }

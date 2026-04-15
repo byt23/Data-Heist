@@ -10,11 +10,9 @@ import SwiftData
 
 struct LevelSelectView: View {
     @Query private var stats: [PlayerStats]
-    @Environment(\.dismiss) var dismiss
     
-    // YENİ NAVİGASYON DURUMLARI
-    @State private var selectedLevelToPlay: Int = 1
-    @State private var navigateToGame: Bool = false
+    // ROUTER BAĞLANTISI
+    @Environment(Router.self) private var router
     
     private var unlockedLevel: Int { stats.first?.unlockedLevel ?? 1 }
     let columns = [GridItem(.adaptive(minimum: 70))]
@@ -35,29 +33,23 @@ struct LevelSelectView: View {
                             LevelButton(level: level,
                                         isLocked: level > unlockedLevel,
                                         isActive: false) {
-                                // Butona basılınca seviyeyi kaydet ve oyuna geçişi tetikle
-                                selectedLevelToPlay = level
-                                navigateToGame = true
+                                // ROUTER İLE OYUNA GEÇ
+                                router.currentScreen = .game(level: level)
                             }
                         }
                     }
                     .padding()
                 }
                 
-                Button("ANA MENÜ") { dismiss() }
+                // ROUTER İLE MENÜYE DÖN
+                Button("ANA MENÜ") { router.currentScreen = .menu }
                     .font(.system(size: 16, design: .monospaced)).foregroundColor(.gray)
             }
             .padding()
         }
-        // BUG'I ÇÖZEN KISIM: fullScreenCover yerine temiz bir sayfa geçişi (navigationDestination) kullanıyoruz.
-        .navigationDestination(isPresented: $navigateToGame) {
-            GameView(startingLevel: selectedLevelToPlay)
-                .navigationBarBackButtonHidden(true) // Oyun ekranında üstteki geri tuşunu gizler
-        }
     }
 }
 
-// MARK: - ALT BİLEŞENLER
 struct LevelButton: View {
     let level: Int
     let isLocked: Bool
