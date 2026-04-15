@@ -8,9 +8,8 @@
 **DATA-HEIST**, siber güvenlik uzmanı rolüne büründüğünüz, anlık veri akışlarını analiz edip sistemlere sızmaya çalıştığınız tempolu bir **iOS mobil oyunudur.** ---
 
 ## 🎥 Oynanış (Gameplay)
-
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/3b88d491-7017-42d7-a943-a15d45954e8c" width="250" alt="Oynanış Videosu">
+  <img src="https://github.com/user-attachments/assets/9bafc506-1b3f-4cd2-9d6d-fac5b14f95e4" width="250" alt="Oynanış Videosu">
 </p>
 
 ### 📸 Ekran Görüntüleri
