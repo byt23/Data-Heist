@@ -8,16 +8,19 @@
 import Foundation
 import SwiftData
 
-// SwiftData modelimiz: Cihazda saklanacak veriler
 @Model
 class PlayerStats {
-    var totalHacksPrevented: Int = 0
     var highScore: Int = 0
+    var totalHacksPrevented: Int = 0
+    var unlockedLevel: Int = 1 // BURASI EKSİK OLDUĞU İÇİN HATA ALIYORSUN
+    var cyberCoins: Int = 0
     var lastLogin: Date = Date()
     
-    init(totalHacksPrevented: Int = 0, highScore: Int = 0, lastLogin: Date = Date()) {
-        self.totalHacksPrevented = totalHacksPrevented
+    init(highScore: Int = 0, totalHacksPrevented: Int = 0, unlockedLevel: Int = 1, cyberCoins: Int = 0) {
         self.highScore = highScore
-        self.lastLogin = lastLogin
+        self.totalHacksPrevented = totalHacksPrevented
+        self.unlockedLevel = unlockedLevel
+        self.cyberCoins = cyberCoins
+        self.lastLogin = Date()
     }
 }

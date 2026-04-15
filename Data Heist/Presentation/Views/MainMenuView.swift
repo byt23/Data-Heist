@@ -21,85 +21,93 @@ struct MainMenuView: View {
     var body: some View {
         NavigationStack {
             ZStack {
+                // Arka Plan
                 Color.black.ignoresSafeArea()
+                
+                // MEŞHUR MATRIX EFEKTİ (Silinmedi, burada akmaya devam ediyor)
                 MatrixEffect()
                 
-                // ANA AKIŞ
-                VStack(spacing: 20) {
+                VStack(spacing: 25) {
                     
-                    // YENİ: Soru İşareti tuşunu ana akışın en üstüne taşıdık.
-                    // Böylece başlıkla üst üste binmesi imkansız hale geldi.
+                    // ÜST ARAÇ ÇUBUĞU
                     HStack {
                         Spacer()
+                        // Soru işareti butonu - Sağ üstte daha profesyonel duruyor
                         Button(action: {
                             HapticManager.shared.triggerImpact(style: .medium)
                             showingHelp = true
                         }) {
-                            Image(systemName: "questionmark")
-                                .font(.system(size: 16, weight: .bold, design: .monospaced))
-                                .frame(width: 35, height: 35)
-                                .foregroundColor(.black)
-                                .background(Color.green)
-                                .clipShape(Circle())
-                                .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                                .shadow(color: .green.opacity(0.5), radius: 5)
+                            Image(systemName: "questionmark.circle.fill")
+                                .font(.system(size: 24))
+                                .foregroundColor(.green)
+                                .shadow(color: .green.opacity(0.6), radius: 5)
                         }
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 25)
                     .padding(.top, 10)
                     
-                    // OYUN BAŞLIĞI
-                    VStack(spacing: 10) {
+                    // BAŞLIK ALANI
+                    VStack(spacing: 8) {
                         Text("DATA-HEIST")
                             .font(.system(size: 48, weight: .black, design: .monospaced))
                             .foregroundColor(.green)
-                            .glow()
+                            .glow() // Parlama efekti
                         
                         Text("TERMINAL HACKER")
-                            .font(.system(size: 20, weight: .bold, design: .monospaced))
+                            .font(.system(size: 18, weight: .bold, design: .monospaced))
                             .foregroundColor(.gray)
+                            .tracking(4) // Harf arası boşluk
                     }
                     
                     Spacer()
                     
-                    // İSTATİSTİKLER PANELİ
+                    // İSTATİSTİKLER PANELİ (Sistem Günlüğü)
                     VStack(alignment: .leading, spacing: 15) {
-                        Text("SİSTEM GÜNLÜĞÜ:")
+                        Label("SİSTEM GÜNLÜĞÜ", systemImage: "terminal.fill")
                             .font(.system(size: 14, weight: .bold, design: .monospaced))
-                            .foregroundColor(.gray)
+                            .foregroundColor(.green)
+                            .padding(.bottom, 5)
+                        
+                        Divider().background(Color.green.opacity(0.3))
                         
                         StatRow(title: "YÜKSEK SKOR", value: "\(playerStats.highScore)")
                         StatRow(title: "ÖNLENEN SIZMA", value: "\(playerStats.totalHacksPrevented)")
                         StatRow(title: "SON GİRİŞ", value: playerStats.lastLogin.formatted(.relative(presentation: .named)))
                     }
-                    .padding()
-                    .background(Color.green.opacity(0.1))
-                    .cornerRadius(12)
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.green.opacity(0.3), lineWidth: 1))
-                    .padding(.horizontal, 30) // Kenar boşluklarını biraz artırdık
+                    .padding(25)
+                    .background(Color.green.opacity(0.05))
+                    .cornerRadius(15)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 15)
+                            .stroke(Color.green.opacity(0.2), lineWidth: 1)
+                    )
+                    .padding(.horizontal, 30)
                     
                     Spacer()
                     
-                    // BAŞLATMA TUŞU
+                    // AKSİYON BUTONU
                     Button(action: {
                         HapticManager.shared.triggerImpact(style: .heavy)
                         navigateToGame = true
                     }) {
-                        Text("SİSTEMİ BAŞLAT")
-                            .font(.system(size: 22, weight: .bold, design: .monospaced))
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.green.opacity(0.2))
-                            .foregroundColor(.green)
-                            .cornerRadius(10)
-                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.green, lineWidth: 2))
+                        HStack {
+                            Image(systemName: "lock.open.fill")
+                            Text("SİSTEMİ BAŞLAT")
+                        }
+                        .font(.system(size: 20, weight: .bold, design: .monospaced))
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .background(Color.green)
+                        .cornerRadius(12)
+                        .shadow(color: .green.opacity(0.4), radius: 10)
                     }
                     .padding(.horizontal, 30)
                     
                     Text("© 2026 CYBERNETICS CORP.")
-                        .font(.system(size: 12, design: .monospaced))
-                        .foregroundColor(.gray.opacity(0.5))
-                        .padding(.bottom, 20)
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundColor(.gray.opacity(0.4))
+                        .padding(.bottom, 10)
                 }
             }
             .navigationDestination(isPresented: $navigateToGame) {
@@ -113,38 +121,73 @@ struct MainMenuView: View {
     }
 }
 
-// Yardımcı İstatistik Satırı
+// MARK: - YARDIMCI GÖRÜNÜMLER
+
 struct StatRow: View {
     let title: String
     let value: String
     var body: some View {
         HStack {
-            Text(title).font(.system(size: 16, design: .monospaced)).foregroundColor(.green.opacity(0.8))
+            Text(title)
+                .font(.system(size: 14, design: .monospaced))
+                .foregroundColor(.gray)
             Spacer()
-            Text(value).font(.system(size: 16, weight: .bold, design: .monospaced)).foregroundColor(.white)
+            Text(value)
+                .font(.system(size: 14, weight: .bold, design: .monospaced))
+                .foregroundColor(.white)
         }
     }
 }
 
-// Parlama Efekti
-extension View {
-    func glow(color: Color = .green, radius: CGFloat = 10) -> some View {
-        self.shadow(color: color, radius: radius).shadow(color: color, radius: radius)
-    }
-}
-
-// Matrix Efekti
 struct MatrixEffect: View {
     var body: some View {
-        GeometryReader { _ in
-            ForEach(0..<20) { _ in
-                Text("101001100101")
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundColor(.green.opacity(0.1))
-                    .rotationEffect(.degrees(90))
-                    .offset(x: CGFloat.random(in: 0...400), y: CGFloat.random(in: 0...800))
-                    .animation(Animation.easeInOut(duration: 5).repeatForever().delay(Double.random(in: 0...5)), value: UUID())
+        GeometryReader { proxy in
+            let width = proxy.size.width
+            let height = proxy.size.height
+            
+            ForEach(0..<25) { _ in
+                MatrixColumn(height: height)
+                    .offset(x: CGFloat.random(in: 0...width))
             }
         }
+        .ignoresSafeArea()
+    }
+}
+
+struct MatrixColumn: View {
+    let height: CGFloat
+    @State private var offset: CGFloat = -500
+    
+    var body: some View {
+        Text(generateRandomBinary())
+            .font(.system(size: 12, design: .monospaced))
+            .foregroundColor(.green.opacity(0.15))
+            .fixedSize()
+            .rotationEffect(.degrees(0))
+            .offset(y: offset)
+            .onAppear {
+                withAnimation(
+                    Animation.linear(duration: Double.random(in: 10...20))
+                        .repeatForever(autoreverses: false)
+                        .delay(Double.random(in: 0...10))
+                ) {
+                    offset = height + 500
+                }
+            }
+    }
+    
+    func generateRandomBinary() -> String {
+        var str = ""
+        for _ in 0..<30 {
+            str += "\(Int.random(in: 0...1))\n"
+        }
+        return str
+    }
+}
+
+extension View {
+    func glow(color: Color = .green, radius: CGFloat = 8) -> some View {
+        self.shadow(color: color, radius: radius)
+            .shadow(color: color, radius: radius / 2)
     }
 }
