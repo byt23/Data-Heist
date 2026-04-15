@@ -9,8 +9,11 @@ import SwiftUI
 import SwiftData
 
 struct MainMenuView: View {
+    @Environment(\.modelContext) private var modelContext
     @Query private var stats: [PlayerStats]
+    
     @State private var navigateToGame = false
+    @State private var navigateToMap = false // YENİ: Harita için güvenli yönlendirme durumu
     @State private var showingHelp = false
     @State private var navigationId = UUID()
     
@@ -22,10 +25,8 @@ struct MainMenuView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // 1. TAM EKRAN ARKA PLAN
                 Color.black.ignoresSafeArea()
                 
-                // 2. TAM EKRAN MATRIX YAĞMURU
                 MatrixRainEffect()
                 
                 VStack(spacing: 25) {
@@ -74,7 +75,7 @@ struct MainMenuView: View {
                         StatRow(title: "SİBER COIN", value: "₿\(playerStats.cyberCoins)")
                     }
                     .padding(25)
-                    .background(Color.black.opacity(0.8)) // Matrix üzerinden okunabilmesi için hafif koyu panel
+                    .background(Color.black.opacity(0.8))
                     .cornerRadius(15)
                     .overlay(RoundedRectangle(cornerRadius: 15).stroke(Color.green.opacity(0.2), lineWidth: 1))
                     .padding(.horizontal, 30)
@@ -83,6 +84,7 @@ struct MainMenuView: View {
                     
                     // BUTONLAR
                     VStack(spacing: 15) {
+                        // 1. SİSTEMİ BAŞLAT
                         Button(action: {
                             HapticManager.shared.triggerImpact(style: .heavy)
                             navigateToGame = true
@@ -100,7 +102,11 @@ struct MainMenuView: View {
                             .shadow(color: .green.opacity(0.4), radius: 10)
                         }
                         
-                        NavigationLink(destination: LevelSelectView().navigationBarBackButtonHidden(true)) {
+                        // 2. SEVİYE SEÇİMİ (BURASI DEĞİŞTİ - Bug'ı çözecek kısım)
+                        Button(action: {
+                            HapticManager.shared.triggerImpact(style: .medium)
+                            navigateToMap = true
+                        }) {
                             HStack {
                                 Image(systemName: "map.fill")
                                 Text("SEVİYE SEÇİMİ")
@@ -122,8 +128,13 @@ struct MainMenuView: View {
                         .padding(.bottom, 10)
                 }
             }
+            // --- GÜVENLİ YÖNLENDİRMELER (Eski NavigationLink sorununu çözer) ---
             .navigationDestination(isPresented: $navigateToGame) {
                 GameView(startingLevel: playerStats.unlockedLevel)
+                    .navigationBarBackButtonHidden(true)
+            }
+            .navigationDestination(isPresented: $navigateToMap) {
+                LevelSelectView()
                     .navigationBarBackButtonHidden(true)
             }
             .sheet(isPresented: $showingHelp) {
@@ -134,6 +145,13 @@ struct MainMenuView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("GoToRoot"))) { _ in
             navigationId = UUID()
         }
+        .onAppear {
+            if stats.isEmpty {
+                let initialStats = PlayerStats()
+                modelContext.insert(initialStats)
+                try? modelContext.save()
+            }
+        }
     }
 }
 
@@ -142,7 +160,7 @@ struct MatrixRainEffect: View {
     var body: some View {
         GeometryReader { proxy in
             let size = proxy.size
-            let columns = Int(size.width / 18) // Ekran genişliğine göre sütun sayısı
+            let columns = Int(size.width / 18)
             
             HStack(spacing: 2) {
                 ForEach(0..<columns, id: \.self) { _ in
@@ -151,8 +169,8 @@ struct MatrixRainEffect: View {
             }
             .frame(width: size.width, height: size.height)
         }
-        .ignoresSafeArea() // Çentik ve alt çubuğu kapsar
-        .allowsHitTesting(false) // Butonlara tıklamayı engellemez
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
     }
 }
 
@@ -165,23 +183,17 @@ struct MatrixRainColumn: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Sütun karakterleri (Ekranı dolduracak kadar uzun)
             ForEach(0..<45, id: \.self) { _ in
                 Text(String(Int.random(in: 0...1)))
                     .font(.system(size: 14, weight: .bold, design: .monospaced))
                     .foregroundColor(.green)
-                    .opacity(0.15) // Göz yormayan belirginlik
+                    .opacity(0.15)
                     .padding(.bottom, 2)
             }
         }
         .mask(
-            // Akış hissini veren gradient maskesi
             Rectangle()
-                .fill(
-                    LinearGradient(gradient: Gradient(colors: [.clear, .black, .clear]),
-                                   startPoint: .top,
-                                   endPoint: .bottom)
-                )
+                .fill(LinearGradient(gradient: Gradient(colors: [.clear, .black, .clear]), startPoint: .top, endPoint: .bottom))
                 .frame(height: 600)
                 .offset(y: startAnimation ? screenHeight + 600 : -600)
         )
@@ -193,7 +205,6 @@ struct MatrixRainColumn: View {
     }
 }
 
-// MARK: - YARDIMCI GÖRÜNÜMLER
 struct StatRow: View {
     let title: String
     let value: String

@@ -7,25 +7,25 @@
 
 import Foundation
 import SwiftUI
+import SwiftData
 
 @Observable
 class GameViewModel {
+    var modelContext: ModelContext?
+    
     var dataPoints: [DataPoint] = []
     var score: Int = 0
     var terminalMessage: String = "SİSTEM İZLENİYOR..."
-    
     var timeLeft: Int = 15
     var isGameOver: Bool = false
     var isVictory: Bool = false
     var currentLevel: Int = 1
     
-    // YENİ OYUN MEKANİKLERİ
     var powerUpsRemaining: Int = 2
     var isTimeFrozen: Bool = false
-    
-    var combo: Int = 0 // Kombo sayacı
-    var ipDetection: Double = 0.0 // IP Tespit Barı (0.0 - 100.0 arası)
-    var cyberCoinsEarned: Int = 0 // Dükkanda harcamak için kazanılan para
+    var combo: Int = 0
+    var ipDetection: Double = 0.0
+    var cyberCoinsEarned: Int = 0
     
     private var timer: Timer?
     private let engine = GameEngine()
@@ -34,28 +34,22 @@ class GameViewModel {
         if resetGame {
             score = 0
             cyberCoinsEarned = 0
-            isGameOver = false
-            isVictory = false // Başlangıçta zafer ekranını kapat
             powerUpsRemaining = 2
         }
         
-        // KRİTİK EKLEME: Her yeni seviye başladığında zafer ve oyun bitti durumlarını sıfırla
         self.isVictory = false
         self.isGameOver = false
+        self.currentLevel = level
+        self.combo = 0
+        self.ipDetection = 0.0
+        self.isTimeFrozen = false
         
-        currentLevel = level
-        combo = 0
-        ipDetection = 0.0
-        isTimeFrozen = false
-        
-        // ... (Kodun geri kalanı aynı kalıyor)
         let currentAnomalyCount = min(12, 2 + currentLevel)
         let calculatedTime = max(5, 15 - (currentLevel / 2))
         
         timeLeft = calculatedTime
         dataPoints = engine.generateDataSet(pointCount: 20, anomalyCount: currentAnomalyCount, level: currentLevel)
         
-        // Seviye mesajları vb...
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             self?.tick()
@@ -63,9 +57,8 @@ class GameViewModel {
     }
     
     private func tick() {
-        if isTimeFrozen { return }
+        guard !isTimeFrozen && !isGameOver && !isVictory else { return }
         
-        // IP BARI HER SANİYE DOLAR (Seviye arttıkça daha hızlı dolar)
         ipDetection += (0.5 + (Double(currentLevel) * 0.2))
         if ipDetection >= 100.0 {
             triggerGameOver(reason: "SİBER POLİS TARAFINDAN TESPİT EDİLDİN!")
@@ -104,15 +97,12 @@ class GameViewModel {
         guard !isGameOver && !isVictory else { return }
         
         if point.isAnomaly {
-            // YENİ: KOMBO SİSTEMİ
             combo += 1
             let basePoints = point.anomalyType == .drop ? 150 : 100
-            let pointsEarned = basePoints * combo // Kombo ile puan katlanır!
+            let pointsEarned = basePoints * combo
             
             score += pointsEarned
-            cyberCoinsEarned += (10 * combo) // Dükkan parası da katlanır
-            
-            // IP Barını biraz düşür (Sistemi rahatlat)
+            cyberCoinsEarned += (10 * combo)
             ipDetection = max(0, ipDetection - 5.0)
             
             terminalMessage = combo > 1 ? "KOMBO x\(combo)! (+\(pointsEarned))" : "TEHDİT ENGELLENDİ! (+\(pointsEarned))"
@@ -120,12 +110,10 @@ class GameViewModel {
             neutralizeThreat(at: point)
             checkLevelClear()
         } else {
-            // YENİ: HATA CEZALARI EKLENDİ
-            combo = 0 // Kombo sıfırlanır
+            combo = 0
             score -= 50
             timeLeft -= 2
-            ipDetection += 15.0 // Yanlış alarm FBI'ın dikkatini çeker!
-            
+            ipDetection += 15.0
             terminalMessage = "HATA: KOMBO KIRILDI! IP İZLENİYOR!"
             HapticManager.shared.triggerNotification(type: .error)
             
@@ -147,9 +135,40 @@ class GameViewModel {
         if remainingAnomalies == 0 {
             timer?.invalidate()
             isVictory = true
-            terminalMessage = "SEVİYE \(currentLevel) TAMAMLANDI!"
+            terminalMessage = "ERİŞİM BAŞARILI. SİSTEM VERİLERİ SIZDIRILDI."
+            HapticManager.shared.triggerNotification(type: .success)
+            saveProgress()
+        }
+    }
+    
+    private func saveProgress() {
+        guard let context = modelContext else { return }
+        
+        let descriptor = FetchDescriptor<PlayerStats>()
+        do {
+            let statsList = try context.fetch(descriptor)
+            let stats: PlayerStats
             
-            // ÖNEMLİ: SwiftData üzerinden unlockedLevel'ı güncelleme tetikleyicisi buraya gelecek
+            if let existingStats = statsList.first {
+                stats = existingStats
+            } else {
+                stats = PlayerStats()
+                context.insert(stats)
+            }
+            
+            if currentLevel == stats.unlockedLevel && stats.unlockedLevel < 20 {
+                stats.unlockedLevel += 1
+            }
+            
+            stats.cyberCoins += cyberCoinsEarned
+            stats.totalHacksPrevented += 1
+            if score > stats.highScore {
+                stats.highScore = score
+            }
+            
+            try context.save()
+        } catch {
+            print("Veritabanı kayıt hatası: \(error)")
         }
     }
 }

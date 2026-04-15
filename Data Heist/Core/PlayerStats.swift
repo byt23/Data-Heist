@@ -9,14 +9,19 @@ import Foundation
 import SwiftData
 
 @Model
-class PlayerStats {
-    var highScore: Int = 0
-    var totalHacksPrevented: Int = 0
-    var unlockedLevel: Int = 1 // BURASI EKSİK OLDUĞU İÇİN HATA ALIYORSUN
-    var cyberCoins: Int = 0
-    var lastLogin: Date = Date()
+final class PlayerStats {
+    var highScore: Int
+    var totalHacksPrevented: Int
+    var unlockedLevel: Int
+    var cyberCoins: Int
+    var lastLogin: Date
     
-    init(highScore: Int = 0, totalHacksPrevented: Int = 0, unlockedLevel: Int = 1, cyberCoins: Int = 0) {
+    init(
+        highScore: Int = 0,
+        totalHacksPrevented: Int = 0,
+        unlockedLevel: Int = 1,
+        cyberCoins: Int = 0
+    ) {
         self.highScore = highScore
         self.totalHacksPrevented = totalHacksPrevented
         self.unlockedLevel = unlockedLevel
