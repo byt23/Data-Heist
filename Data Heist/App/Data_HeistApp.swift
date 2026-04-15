@@ -6,12 +6,27 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
-struct Data_HeistApp: App {
+struct DataHeistApp: App {
+    // SwiftData için model konteynerini oluştur
+    let container: ModelContainer
+    
+    init() {
+        do {
+            container = try ModelContainer(for: PlayerStats.self)
+        } catch {
+            fatalError("Could not initialize ModelContainer: \(error)")
+        }
+    }
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            // Uygulama artık Ana Menü'den başlar
+            MainMenuView()
+                // SwiftData konteynerini tüm görünümlere sun
+                .modelContainer(container)
         }
     }
 }
