@@ -5,11 +5,14 @@
 ![Framework](https://img.shields.io/badge/UI-SwiftUI-green)
 ![Database](https://img.shields.io/badge/Database-SwiftData-red)
 
-**DATA-HEIST**, siber güvenlik uzmanı rolüne büründüğünüz, anlık veri akışlarını analiz edip sistemlere sızmaya çalıştığınız tempolu bir **iOS mobil oyunudur.** ---
+**DATA-HEIST**, siber güvenlik uzmanı rolüne büründüğünüz, anlık veri akışlarını analiz edip sistemlere sızmaya çalıştığınız tempolu bir **iOS mobil oyunudur.**
+
+---
 
 ## 🎥 Oynanış (Gameplay)
+
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/9bafc506-1b3f-4cd2-9d6d-fac5b14f95e4" width="250" alt="Oynanış Videosu">
+  <video src="https://github.com/user-attachments/assets/9bafc506-1b3f-4cd2-9d6d-fac5b14f95e4" width="250" controls></video>
 </p>
 
 ### 📸 Ekran Görüntüleri
